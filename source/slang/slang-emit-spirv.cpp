@@ -9504,7 +9504,7 @@ struct SPIRVEmitContext : public SourceEmitterBase, public SPIRVEmitSharedContex
         }
         else if (auto coopVecType = as<IRCoopVectorType>(type))
         {
-            auto debugElementType =
+            auto elementType =
                 emitDebugType(coopVecType->getElementType(), isTypeInBuffer);
             auto componentCount = builder.getIntValue(
                 builder.getUIntType(),
@@ -9514,12 +9514,12 @@ struct SPIRVEmitContext : public SourceEmitterBase, public SPIRVEmitSharedContex
                 nullptr,
                 m_voidType,
                 getNonSemanticDebugInfoExtInst(),
-                debugElementType,
+                elementType,
                 componentCount);
         }
         else if (auto coopMatType = as<IRCoopMatrixType>(type))
         {
-            auto debugElementType =
+            auto elementType =
                 emitDebugType(coopMatType->getElementType(), isTypeInBuffer);
             auto scope = builder.getIntValue(
                 builder.getUIntType(),
@@ -9538,7 +9538,7 @@ struct SPIRVEmitContext : public SourceEmitterBase, public SPIRVEmitSharedContex
                 nullptr,
                 m_voidType,
                 getNonSemanticDebugInfoExtInst(),
-                debugElementType,
+                elementType,
                 scope,
                 rows,
                 columns,
@@ -9601,13 +9601,13 @@ struct SPIRVEmitContext : public SourceEmitterBase, public SPIRVEmitSharedContex
             switch (type->getOp())
             {
             case kIROp_BFloat16Type:
-                fpEncodingValue = 0; // BFloat16KHR
+                fpEncodingValue = SpvFPEncodingBFloat16KHR;
                 break;
             case kIROp_FloatE4M3Type:
-                fpEncodingValue = 4214; // Float8E4M3EXT
+                fpEncodingValue = SpvFPEncodingFloat8E4M3EXT;
                 break;
             case kIROp_FloatE5M2Type:
-                fpEncodingValue = 4215; // Float8E5M2EXT
+                fpEncodingValue = SpvFPEncodingFloat8E5M2EXT;
                 break;
             default:
                 break;

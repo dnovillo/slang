@@ -37,4 +37,5 @@ void computeMain()
 // CHECK: [[DBG_FLOAT:%[0-9]+]] = OpExtInst %void {{%[0-9]+}} 2 {{.*}} %uint_32 %uint_3
 
 // Verify DebugTypeCooperativeMatrixKHR (instruction 111).
-// CHECK: OpExtInst %void {{%[0-9]+}} 111 [[DBG_FLOAT]]
+// Operands: componentType, scope(Subgroup=3), rows(16), columns(16), use(MatrixAccumulator=2).
+// CHECK: OpExtInst %void {{%[0-9]+}} 111 [[DBG_FLOAT]] %uint_3 %uint_16 %uint_16 %uint_2
