@@ -18,7 +18,8 @@
 	url = https://github.com/KhronosGroup/SPIRV-Tools.git
 [submodule "external/spirv-headers"]
 	path = external/spirv-headers
-	url = https://github.com/KhronosGroup/SPIRV-Headers.git
+	url = https://github.com/dnovillo/SPIRV-Headers.git
+	branch = nsdi110
 [submodule "external/miniz"]
 	path = external/miniz
 	url = https://github.com/richgel999/miniz
