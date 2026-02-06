@@ -330,6 +330,35 @@ SpvInst* emitOpDebugTypeBasic(
         flags);
 }
 
+// DebugTypeBasic (instruction 2) with optional FPEncoding parameter (NSDI 110)
+template<typename T>
+SpvInst* emitOpDebugTypeBasic(
+    SpvInstParent* parent,
+    IRInst* inst,
+    const T& idResultType,
+    SpvInst* set,
+    IRInst* name,
+    IRInst* size,
+    IRInst* encoding,
+    IRInst* flags,
+    IRInst* fpEncoding)
+{
+    static_assert(isSingular<T>);
+    return emitInst(
+        parent,
+        inst,
+        SpvOpExtInst,
+        idResultType,
+        kResultID,
+        set,
+        SpvWord(2),
+        name,
+        size,
+        encoding,
+        flags,
+        fpEncoding);
+}
+
 template<typename T>
 SpvInst* emitOpDebugTypeVector(
     SpvInstParent* parent,
@@ -374,6 +403,85 @@ SpvInst* emitOpDebugTypeMatrix(
         vectorType,
         vectorCount,
         columnMajor);
+}
+
+// DebugTypeCooperativeVectorNV (instruction 109, NSDI 110)
+template<typename T>
+SpvInst* emitOpDebugTypeCooperativeVectorNV(
+    SpvInstParent* parent,
+    IRInst* inst,
+    const T& idResultType,
+    SpvInst* set,
+    SpvInst* componentType,
+    IRInst* componentCount)
+{
+    static_assert(isSingular<T>);
+    return emitInst(
+        parent,
+        inst,
+        SpvOpExtInst,
+        idResultType,
+        kResultID,
+        set,
+        SpvWord(109),
+        componentType,
+        componentCount);
+}
+
+// DebugTypeCooperativeMatrixNV (instruction 110, NSDI 110)
+template<typename T>
+SpvInst* emitOpDebugTypeCooperativeMatrixNV(
+    SpvInstParent* parent,
+    IRInst* inst,
+    const T& idResultType,
+    SpvInst* set,
+    SpvInst* componentType,
+    IRInst* scope,
+    IRInst* rows,
+    IRInst* columns)
+{
+    static_assert(isSingular<T>);
+    return emitInst(
+        parent,
+        inst,
+        SpvOpExtInst,
+        idResultType,
+        kResultID,
+        set,
+        SpvWord(110),
+        componentType,
+        scope,
+        rows,
+        columns);
+}
+
+// DebugTypeCooperativeMatrixKHR (instruction 111, NSDI 110)
+template<typename T>
+SpvInst* emitOpDebugTypeCooperativeMatrixKHR(
+    SpvInstParent* parent,
+    IRInst* inst,
+    const T& idResultType,
+    SpvInst* set,
+    SpvInst* componentType,
+    IRInst* scope,
+    IRInst* rows,
+    IRInst* columns,
+    IRInst* use)
+{
+    static_assert(isSingular<T>);
+    return emitInst(
+        parent,
+        inst,
+        SpvOpExtInst,
+        idResultType,
+        kResultID,
+        set,
+        SpvWord(111),
+        componentType,
+        scope,
+        rows,
+        columns,
+        use);
 }
 
 template<typename T>

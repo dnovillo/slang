@@ -1444,7 +1444,7 @@ struct SPIRVEmitContext : public SourceEmitterBase, public SPIRVEmitSharedContex
         m_NonSemanticDebugInfoExtInst = emitOpExtInstImport(
             getSection(SpvLogicalSectionID::ExtIntInstImports),
             nullptr,
-            UnownedStringSlice("NonSemantic.Shader.DebugInfo.100"));
+            UnownedStringSlice("NonSemantic.Shader.DebugInfo.110"));
         return m_NonSemanticDebugInfoExtInst;
     }
 
@@ -9502,6 +9502,48 @@ struct SPIRVEmitContext : public SourceEmitterBase, public SPIRVEmitSharedContex
                 builder.getIntValue(builder.getUIntType(), getIntVal(count)),
                 builder.getBoolValue(isSpvColMajor));
         }
+        else if (auto coopVecType = as<IRCoopVectorType>(type))
+        {
+            auto debugElementType =
+                emitDebugType(coopVecType->getElementType(), isTypeInBuffer);
+            auto componentCount = builder.getIntValue(
+                builder.getUIntType(),
+                getIntVal(coopVecType->getElementCount()));
+            return emitOpDebugTypeCooperativeVectorNV(
+                getSection(SpvLogicalSectionID::ConstantsAndTypes),
+                nullptr,
+                m_voidType,
+                getNonSemanticDebugInfoExtInst(),
+                debugElementType,
+                componentCount);
+        }
+        else if (auto coopMatType = as<IRCoopMatrixType>(type))
+        {
+            auto debugElementType =
+                emitDebugType(coopMatType->getElementType(), isTypeInBuffer);
+            auto scope = builder.getIntValue(
+                builder.getUIntType(),
+                getIntVal(coopMatType->getScope()));
+            auto rows = builder.getIntValue(
+                builder.getUIntType(),
+                getIntVal(coopMatType->getRowCount()));
+            auto columns = builder.getIntValue(
+                builder.getUIntType(),
+                getIntVal(coopMatType->getColumnCount()));
+            auto use = builder.getIntValue(
+                builder.getUIntType(),
+                getIntVal(coopMatType->getMatrixUse()));
+            return emitOpDebugTypeCooperativeMatrixKHR(
+                getSection(SpvLogicalSectionID::ConstantsAndTypes),
+                nullptr,
+                m_voidType,
+                getNonSemanticDebugInfoExtInst(),
+                debugElementType,
+                scope,
+                rows,
+                columns,
+                use);
+        }
         else if (as<IRBasicType>(type) || as<IRPackedFloatType>(type))
         {
             // Handle void type specially - it needs name "void" for debug info
@@ -9554,15 +9596,48 @@ struct SPIRVEmitContext : public SourceEmitterBase, public SPIRVEmitSharedContex
                 spvEncoding = 0; // Unspecified.
                 break;
             }
-            return emitOpDebugTypeBasic(
-                getSection(SpvLogicalSectionID::ConstantsAndTypes),
-                nullptr,
-                m_voidType,
-                getNonSemanticDebugInfoExtInst(),
-                builder.getStringValue(sbName.getUnownedSlice()),
-                builder.getIntValue(builder.getUIntType(), sizeAlignment.size * 8),
-                builder.getIntValue(builder.getUIntType(), spvEncoding),
-                builder.getIntValue(builder.getUIntType(), kUnknownPhysicalLayout));
+            // Determine FP encoding for non-IEEE float types (NSDI 110).
+            int fpEncodingValue = -1; // -1 means "not applicable"
+            switch (type->getOp())
+            {
+            case kIROp_BFloat16Type:
+                fpEncodingValue = 0; // BFloat16KHR
+                break;
+            case kIROp_FloatE4M3Type:
+                fpEncodingValue = 4214; // Float8E4M3EXT
+                break;
+            case kIROp_FloatE5M2Type:
+                fpEncodingValue = 4215; // Float8E5M2EXT
+                break;
+            default:
+                break;
+            }
+
+            if (fpEncodingValue >= 0)
+            {
+                return emitOpDebugTypeBasic(
+                    getSection(SpvLogicalSectionID::ConstantsAndTypes),
+                    nullptr,
+                    m_voidType,
+                    getNonSemanticDebugInfoExtInst(),
+                    builder.getStringValue(sbName.getUnownedSlice()),
+                    builder.getIntValue(builder.getUIntType(), sizeAlignment.size * 8),
+                    builder.getIntValue(builder.getUIntType(), spvEncoding),
+                    builder.getIntValue(builder.getUIntType(), kUnknownPhysicalLayout),
+                    builder.getIntValue(builder.getUIntType(), fpEncodingValue));
+            }
+            else
+            {
+                return emitOpDebugTypeBasic(
+                    getSection(SpvLogicalSectionID::ConstantsAndTypes),
+                    nullptr,
+                    m_voidType,
+                    getNonSemanticDebugInfoExtInst(),
+                    builder.getStringValue(sbName.getUnownedSlice()),
+                    builder.getIntValue(builder.getUIntType(), sizeAlignment.size * 8),
+                    builder.getIntValue(builder.getUIntType(), spvEncoding),
+                    builder.getIntValue(builder.getUIntType(), kUnknownPhysicalLayout));
+            }
         }
         else if (auto ptrType = as<IRPtrTypeBase>(type))
         {
